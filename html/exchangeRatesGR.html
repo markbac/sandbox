@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Historical Exchange Rates</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Historical Exchange Rates</h1>
+    <label for="periodSelect">Select Period:</label>
+    <select id="periodSelect">
+        <option value="7">Last 7 Days</option>
+        <option value="31">Last 31 Days</option>
+        <option value="365">Last 365 Days</option>
+        <option value="1825">Last 5 Years</option>
+    </select>
+
+    <canvas id="exchangeRateChart" width="800" height="400"></canvas>
+
+    <script>
+        const apiKey = 'c4f144eeb54ff194ea5561f6'; // Replace with your API key
+        const baseCurrency = 'GBP';
+        const targetCurrency = 'EUR'; // Change this to your target currency
+
+        async function fetchHistoricalData(days) {
+            // Calculate the start date based on the selected period
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(endDate.getDate() - days);
+
+            const year = startDate.getFullYear();
+            const month = startDate.getMonth() + 1; // JavaScript months are 0-indexed
+            const day = startDate.getDate();
+
+            const url = `https://v6.exchangerate-api.com/v6/${apiKey}/history/${baseCurrency}/${year}/${month}/${day}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            return data;
+        }
+
+        function updateChart(data) {
+            // Process data to be used in Chart.js
+            const labels = Object.keys(data.conversion_rates);
+            const values = Object.values(data.conversion_rates).map(rate => rate[targetCurrency]);
+
+            const ctx = document.getElementById('exchangeRateChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Exchange Rate of ${baseCurrency} to ${targetCurrency}`,
+                        data: values,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {}
+            });
+        }
+
+        document.getElementById('periodSelect').addEventListener('change', async (e) => {
+            const days = e.target.value;
+            const historicalData = await fetchHistoricalData(days);
+            updateChart(historicalData);
+        });
+
+        // Initial fetch for the default selected period
+        fetchHistoricalData(7).then(updateChart);
+    </script>
+</body>
+</html>

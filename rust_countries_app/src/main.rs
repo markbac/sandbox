@@ -1,5 +1,5 @@
-use serde_json::{Value, json};
-use std::io::{self, Write};
+use serde_json::{self, Value};
+use std::io::Write;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -15,18 +15,17 @@ async fn fetch_country_data(url: &str) -> Result<Value, reqwest::Error> {
     Ok(response)
 }
 
-fn save_data_to_file(data: &serde_json::Value, file_path: &str) -> std::io::Result<()> {
+fn save_data_to_file(data: &Value, file_path: &str) -> std::io::Result<()> {
     let mut file = std::fs::File::create(file_path)?;
-    // Use `to_string_pretty` to format the JSON data.
     let data_str = serde_json::to_string_pretty(data)?;
     file.write_all(data_str.as_bytes())?;
     Ok(())
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json; // Ensure json! macro is imported for the test
     use std::fs::{self, File};
     use std::io::Read;
 
@@ -39,7 +38,7 @@ mod tests {
 
     #[test]
     fn test_save_data_to_file() {
-        let data = json!({"test": "data"});
+        let data = json!({"test": "data"}); // This requires `serde_json::json`
         let file_path = "test_output.json";
         let save_result = save_data_to_file(&data, file_path);
         assert!(save_result.is_ok(), "Failed to save data to file");
@@ -48,7 +47,7 @@ mod tests {
         let mut file = File::open(file_path).unwrap();
         let mut contents = String::new();
         file.read_to_string(&mut contents).unwrap();
-        assert_eq!(contents, "{\"test\":\"data\"}");
+        assert_eq!(contents, serde_json::to_string_pretty(&data).unwrap());
 
         // Cleanup
         fs::remove_file(file_path).unwrap();

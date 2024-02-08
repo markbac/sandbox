@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Country Information</title>
+<style>
+    #countryInfo, #debugWindow { padding: 20px; border: 1px solid #ddd; margin-top: 20px; }
+    #countryInfo h2, #debugWindow h2 { margin-top: 0; }
+    #countryInfo img { margin-top: 10px; }
+    dl { margin-bottom: 0; }
+    dt { font-weight: bold; }
+    dd { margin-bottom: 10px; margin-left: 0; }
+    #debugWindow { background-color: #f9f9f9; overflow-x: auto; }
+    pre { white-space: pre-wrap; word-wrap: break-word; }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('https://restcountries.com/v3.1/all')
+    .then(response => response.json())
+    .then(data => {
+        const sortedData = data.sort((a, b) => a.name.common.localeCompare(b.name.common));
+        const selectElement = document.getElementById('countrySelect');
+        sortedData.forEach(country => {
+            const option = document.createElement('option');
+            option.value = country.cca3;
+            option.textContent = country.name.common;
+            selectElement.appendChild(option);
+        });
+        // Debug window output
+        //document.getElementById('debugWindow').innerHTML = `<h2>Debug Window</h2><pre>${JSON.stringify(sortedData, null, 2)}</pre>`;
+    });
+});
+
+function getCountryInfo() {
+    const countryCode = document.getElementById('countrySelect').value;
+    fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
+    .then(response => response.json())
+    .then(data => {
+        const country = data[0];
+        const infoDiv = document.getElementById('countryInfo');
+        infoDiv.innerHTML = `
+            <h2>${country.name.common}</h2>
+            <dl>
+                <dt>Capital:</dt><dd>${country.capital}</dd>
+                <dt>Population:</dt><dd>${country.population.toLocaleString()}</dd>
+                <dt>Area:</dt><dd>${country.area}</dd>
+                <dt>Continent:</dt><dd>${country.continents}</dd>
+                <dt>Region:</dt><dd>${country.region}</dd>
+                <dt>Subregion:</dt><dd>${country.subregion}</dd>
+                <dt>Capital:</dt><dd>${country.capital}</dd>
+                <dt>International Dialling Code:</dt><dd>${country.idd.root}${country.idd.suffixes}</dd>
+                <dt>UN Member:</dt><dd>${country.unMember}</dd>
+                <dt>Languages:</dt><dd>${Object.values(country.languages).join(', ')}</dd>
+                <dt>Currencies:</dt><dd>${Object.values(country.currencies).map(currency => `${currency.name} (${currency.symbol})`).join(', ')}</dd>
+                <dt>First Day of week:</dt><dd>${country.startOfWeek}</dd>
+                <dt>Landlocked:</dt><dd>${country.landlocked}</dd>
+                <dt>Borders:</dt><dd>${country.borders}</dd>
+                <dt>Timezone:</dt><dd>${country.timezones}</dd>
+                <dt>Flag:</dt><dd><img src="${country.flags.svg}" alt="Flag of ${country.name.common}" width="100"></dd>
+                <dt>Flag:</dt><dd><img src="${country.coatOfArms.svg}" alt="Coat of Arms of ${country.name.common}" width="100"></dd>
+                <dt>Map Link:</dt><dd><a href="${country.googleMaps}" target="_blank">View on Google Maps</a></dd>
+                map
+            </dl>
+        `;
+        // Update debug window with the selected country info
+        document.getElementById('debugWindow').innerHTML = `<h2>Debug Window</h2><pre>${JSON.stringify(data, null, 2)}</pre>`;
+    });
+}
+</script>
+</head>
+<body>
+
+<h1>Select a Country</h1>
+<select id="countrySelect" onchange="getCountryInfo()">
+    <option value="">Select a country...</option>
+</select>
+
+<div id="countryInfo"></div>
+<div id="debugWindow"></div>
+
+</body>
+</html>
