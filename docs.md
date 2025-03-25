@@ -1,3 +1,4 @@
+```yaml
 📁 /docs
  ├── 📄 README.md                           # Documentation Overview
  │
@@ -65,3 +66,4 @@
  │   ├── glossary.md                               # Embedded systems terminology.
  │   ├── faq.md                                    # Common questions about the system.
  │   ├── best-practices.md                         # Best practices for debugging, power optimization.
+```
